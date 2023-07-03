@@ -80,4 +80,16 @@ public static class DecimalExtension
     {
         return Convert.ToInt32(value);
     }
+
+    /// <summary>
+    /// numerator / denominator (unless denominator = 0, returns 0)
+    /// </summary>
+    [Pure]
+    public static decimal SafeDivision(this decimal numerator, decimal denominator)
+    {
+        if (denominator == 0)
+            return 0;
+
+        return numerator / denominator;
+    }
 }
