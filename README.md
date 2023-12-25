@@ -8,5 +8,5 @@
 ## Installation
 
 ```
-Install-Package Soenneker.Extensions.Decimal
+dotnet add package Soenneker.Extensions.Decimal
 ```
