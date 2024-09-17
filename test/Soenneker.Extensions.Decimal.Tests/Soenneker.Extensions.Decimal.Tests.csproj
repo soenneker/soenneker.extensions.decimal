@@ -21,7 +21,7 @@
     </ItemGroup>
 
     <ItemGroup>
-        <ProjectReference Include="..\src\Soenneker.Extensions.Decimal.csproj" />
+        <ProjectReference Include="..\..\src\Soenneker.Extensions.Decimal.csproj" />
     </ItemGroup>
 
 </Project>
