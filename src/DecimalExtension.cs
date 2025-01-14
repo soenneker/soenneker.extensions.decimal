@@ -1,6 +1,6 @@
 ﻿using System;
 using System.Diagnostics.Contracts;
-using System.Globalization;
+using Soenneker.Culture.English.US;
 
 namespace Soenneker.Extensions.Decimal;
 
@@ -25,9 +25,9 @@ public static class DecimalExtension
     [Pure]
     public static string ToCurrencyDisplay(this decimal value, bool excludePlaces = false)
     {
-        string formatter = excludePlaces ? "C0" : "C";
-
-        return value.ToString(formatter, CultureInfo.GetCultureInfo("en-us"));
+        return excludePlaces
+            ? value.ToString("C0", CultureEnUsCache.CultureInfo)
+            : value.ToString("C", CultureEnUsCache.CultureInfo);
     }
 
     /// <summary>Shorthand for <see cref="Math.Round(decimal, int)"/> (with 2 decimal places) </summary>
@@ -42,10 +42,9 @@ public static class DecimalExtension
     [Pure]
     public static string ToPercentDisplay(this decimal value)
     {
-        if (value == 0)
-            return "0%";
-
-        return value.ToString("P02", CultureInfo.GetCultureInfo("en-us"));
+        return value == 0
+            ? "0%"
+            : value.ToString("P02", CultureEnUsCache.CultureInfo);
     }
 
     /// <summary>
@@ -69,7 +68,7 @@ public static class DecimalExtension
     [Pure]
     public static decimal? ToRounded(this decimal? value, int digits)
     {
-        return value?.ToRounded(digits);
+        return value.HasValue ? Math.Round(value.Value, digits) : null;
     }
 
     /// <summary>
@@ -87,9 +86,6 @@ public static class DecimalExtension
     [Pure]
     public static decimal SafeDivision(this decimal numerator, decimal denominator)
     {
-        if (denominator == 0)
-            return 0;
-
-        return numerator / denominator;
+        return denominator == 0 ? 0 : numerator / denominator;
     }
 }

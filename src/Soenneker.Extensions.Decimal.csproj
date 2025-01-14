@@ -35,8 +35,10 @@
     <ItemGroup>
         <None Include="..\README.md" Pack="true" PackagePath="\" />
         <None Include="..\LICENSE" Pack="true" PackagePath="\" />
-        <None Include="..\icon.png" Pack="true" PackagePath="\"/>
-
-        
+        <None Include="..\icon.png" Pack="true" PackagePath="\" />
+    </ItemGroup>
+    
+    <ItemGroup>
+      <PackageReference Include="Soenneker.Culture.English.US" Version="3.0.2" />
     </ItemGroup>
 </Project>
