@@ -39,6 +39,6 @@
     </ItemGroup>
     
     <ItemGroup>
-      <PackageReference Include="Soenneker.Culture.English.US" Version="3.0.5" />
+      <PackageReference Include="Soenneker.Culture.English.US" Version="3.0.6" />
     </ItemGroup>
 </Project>
