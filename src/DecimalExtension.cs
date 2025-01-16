@@ -36,7 +36,7 @@ public static class DecimalExtension
     {
         return Math.Round(value, 2);
     }
-    
+
     /// <summary> Two decimal places, with rounding. i.e. .72948615 -> 72.95% </summary>
     /// <returns>0 will return 0%</returns>
     [Pure]
@@ -77,7 +77,11 @@ public static class DecimalExtension
     [Pure]
     public static int ToInt(this decimal value)
     {
-        return Convert.ToInt32(value);
+        // Perform fast conversion by manual rounding and casting
+        if (value >= 0)
+            return (int) (value + 0.5m); // Round to nearest for positive values
+
+        return (int) (value - 0.5m); // Round to nearest for negative values
     }
 
     /// <summary>
