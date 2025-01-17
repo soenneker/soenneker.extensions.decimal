@@ -1,6 +1,5 @@
 ﻿using System;
 using System.Diagnostics.Contracts;
-using Soenneker.Culture.English.US;
 
 namespace Soenneker.Extensions.Decimal;
 
@@ -19,32 +18,137 @@ public static class DecimalExtension
         return value?.ToCurrencyDisplay(excludePlaces);
     }
 
-    /// <summary> Includes dollar sign and two decimal places. Does not round.</summary>
+    /// <summary>
+    /// Assumes US dollars, and two decimal places. Does not round.
+    /// </summary>
     /// <param name="value"></param>
-    /// <param name="excludePlaces">If set to true, will not include 2 decimal places</param>
+    /// <param name="excludePlaces"></param>
+    /// <returns></returns>
     [Pure]
     public static string ToCurrencyDisplay(this decimal value, bool excludePlaces = false)
     {
-        return excludePlaces
-            ? value.ToString("C0", CultureEnUsCache.CultureInfo)
-            : value.ToString("C", CultureEnUsCache.CultureInfo);
+        // Allocate a buffer on the stack for maximum performance
+        Span<char> buffer = stackalloc char[64]; // Sufficient for large currency values
+
+        // Write the currency symbol manually (assumes USD)
+        buffer[0] = '$';
+
+        // Separate the integer and fractional parts
+        var integerPart = (long)value;
+        var fractionalPart = (int)((value - integerPart) * 100); // Always two decimal places
+
+        // Format the integer part with separators (e.g., "1,234")
+        int position = FormatIntegerWithSeparators(buffer.Slice(1), integerPart);
+
+        // Include decimal places if needed
+        if (!excludePlaces)
+        {
+            buffer[position++] = '.';
+            buffer[position++] = (char)('0' + fractionalPart / 10); // First decimal digit
+            buffer[position++] = (char)('0' + fractionalPart % 10); // Second decimal digit
+        }
+
+        // Return the result as a string
+        return new string(buffer[..position]);
     }
 
     /// <summary>Shorthand for <see cref="Math.Round(decimal, int)"/> (with 2 decimal places) </summary>
     [Pure]
     public static decimal ToCurrency(this decimal value)
     {
-        return Math.Round(value, 2);
+        return Math.Round(value, 2, MidpointRounding.AwayFromZero);
     }
 
-    /// <summary> Two decimal places, with rounding. i.e. .72948615 -> 72.95% </summary>
+    private static int FormatIntegerWithSeparators(Span<char> buffer, long value)
+    {
+        // Format the integer part manually with separators
+        int position = buffer.Length;
+        var digitCount = 0;
+
+        do
+        {
+            if (digitCount == 3)
+            {
+                buffer[--position] = ','; // Add a separator
+                digitCount = 0;
+            }
+
+            buffer[--position] = (char)('0' + value % 10);
+            value /= 10;
+            digitCount++;
+        } while (value > 0);
+
+        // Shift the result to the beginning of the buffer
+        int start = buffer.Length - position;
+        buffer.Slice(position, start).CopyTo(buffer);
+        return start;
+    }
+
+    /// <summary> Two decimal places. Does not round. </summary>
     /// <returns>0 will return 0%</returns>
     [Pure]
     public static string ToPercentDisplay(this decimal value)
     {
-        return value == 0
-            ? "0%"
-            : value.ToString("P02", CultureEnUsCache.CultureInfo);
+        // Handle zero directly to avoid further computation.
+        if (value == 0m)
+            return "0%";
+
+        // Pre-scale the value and extract integer/fractional parts as integers.
+        // Multiply by 100 (to convert to percentage) and shift two decimal places for the fractional part.
+        var scaledValue = (long)(value * 10000); // Scale up to retain two decimal places.
+        long integerPart = scaledValue / 10000;  // Extract integer part.
+        long fractionalPart = Math.Abs(scaledValue % 10000) / 100; // Extract two decimal places.
+
+        // Use a stack-allocated buffer for efficient formatting.
+        Span<char> buffer = stackalloc char[32];
+        var position = 0;
+
+        // Append integer part.
+        position += AppendIntToBuffer((int)integerPart, buffer[position..]);
+
+        // Append fractional part only if it's non-zero.
+        if (fractionalPart > 0)
+        {
+            buffer[position++] = '.'; // Decimal separator.
+            position += AppendFractionToBuffer((int)fractionalPart, buffer[position..]);
+        }
+
+        // Append percentage symbol.
+        buffer[position++] = '%';
+
+        // Return the formatted result as a string.
+        return new string(buffer[..position]);
+    }
+
+    private static int AppendIntToBuffer(int value, Span<char> buffer)
+    {
+        // Handle zero explicitly.
+        if (value == 0)
+        {
+            buffer[0] = '0';
+            return 1;
+        }
+
+        // Determine number of digits and write from back to front.
+        var position = 0;
+        int temp = value;
+        do
+        {
+            buffer[position++] = (char)('0' + temp % 10);
+            temp /= 10;
+        } while (temp > 0);
+
+        // Reverse the digits since they were added in reverse order.
+        buffer[..position].Reverse();
+        return position;
+    }
+
+    private static int AppendFractionToBuffer(int value, Span<char> buffer)
+    {
+        // Ensure the fractional part is two digits, zero-padded.
+        buffer[0] = (char)('0' + value / 10);  // First digit.
+        buffer[1] = (char)('0' + value % 10);  // Second digit.
+        return 2;
     }
 
     /// <summary>
