@@ -52,13 +52,6 @@ public static class DecimalExtension
         return new string(buffer[..position]);
     }
 
-    /// <summary>Shorthand for <see cref="Math.Round(decimal, int)"/> (with 2 decimal places) </summary>
-    [Pure]
-    public static decimal ToCurrency(this decimal value)
-    {
-        return Math.Round(value, 2, MidpointRounding.AwayFromZero);
-    }
-
     private static int FormatIntegerWithSeparators(Span<char> buffer, long value)
     {
         // Format the integer part manually with separators
@@ -82,6 +75,12 @@ public static class DecimalExtension
         int start = buffer.Length - position;
         buffer.Slice(position, start).CopyTo(buffer);
         return start;
+    }
+
+    [Pure]
+    public static decimal ToCurrency(this decimal value)
+    {
+        return Math.Round(value, 2, MidpointRounding.AwayFromZero);
     }
 
     /// <summary> Two decimal places. Does not round. </summary>

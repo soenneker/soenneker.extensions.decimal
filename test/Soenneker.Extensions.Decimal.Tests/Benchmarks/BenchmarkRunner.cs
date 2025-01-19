@@ -1,22 +1,21 @@
 ﻿using System.Threading.Tasks;
 using BenchmarkDotNet.Reports;
-using BenchmarkDotNet.Running;
 using Soenneker.Benchmarking.Extensions.Summary;
 using Soenneker.Tests.Benchmark;
 using Xunit;
 
 namespace Soenneker.Extensions.Decimal.Tests.Benchmarks;
 
-public class DecimalRunner : BenchmarkTest
+public class BenchmarkRunner : BenchmarkTest
 {
-    public DecimalRunner(ITestOutputHelper outputHelper) : base(outputHelper)
+    public BenchmarkRunner(ITestOutputHelper outputHelper) : base(outputHelper)
     {
     }
 
-    //[Fact]
+    [Fact]
     public async ValueTask ToCurrencyDisplayBenchmarks()
     {
-        Summary summary = BenchmarkRunner.Run<ToCurrencyDisplayBenchmarks>(DefaultConf);
+        Summary summary = BenchmarkDotNet.Running.BenchmarkRunner.Run<ToCurrencyDisplayBenchmarks>(DefaultConf);
 
         await summary.OutputSummaryToLog(OutputHelper, CancellationToken);
     }

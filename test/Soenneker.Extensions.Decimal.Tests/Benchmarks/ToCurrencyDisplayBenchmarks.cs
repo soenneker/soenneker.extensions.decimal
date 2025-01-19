@@ -14,10 +14,10 @@ public class ToCurrencyDisplayBenchmarks
         value = 1233.35343M;
     }
 
-    [Benchmark]
-    public string ToCurrencyOld()
+    [Benchmark(Baseline = true)]
+    public string ToCurrencyBuiltIn()
     {
-       return value.ToString("C", CultureEnUsCache.CultureInfo);
+        return value.ToString("C", CultureEnUsCache.CultureInfo);
     }
 
     [Benchmark]
