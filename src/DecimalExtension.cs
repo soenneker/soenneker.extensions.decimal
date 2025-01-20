@@ -1,5 +1,7 @@
 ﻿using System;
 using System.Diagnostics.Contracts;
+using System.Runtime.CompilerServices;
+using static System.Decimal;
 
 namespace Soenneker.Extensions.Decimal;
 
@@ -8,6 +10,10 @@ namespace Soenneker.Extensions.Decimal;
 /// </summary>
 public static class DecimalExtension
 {
+    private const char _currencySymbol = '$';
+    private const char _decimalSeparator = '.';
+    private const char _groupSeparator = ',';
+
     /// <summary> Includes dollar sign and two decimal places</summary>
     /// <returns> Returns null if value is null </returns>
     /// <param name="value"></param>
@@ -19,62 +25,78 @@ public static class DecimalExtension
     }
 
     /// <summary>
-    /// Assumes US dollars, and two decimal places. Does not round.
+    /// Formats a decimal value as a currency string using en-US culture.
     /// </summary>
-    /// <param name="value"></param>
-    /// <param name="excludePlaces"></param>
-    /// <returns></returns>
-    [Pure]
+    /// <param name="value">The decimal value to format.</param>
+    /// <param name="excludePlaces">
+    /// If true, excludes the two decimal places; otherwise, includes them.
+    /// </param>
+    /// <returns>A currency-formatted string.</returns>
+    [MethodImpl(MethodImplOptions.AggressiveInlining)]
     public static string ToCurrencyDisplay(this decimal value, bool excludePlaces = false)
     {
-        // Allocate a buffer on the stack for maximum performance
-        Span<char> buffer = stackalloc char[64]; // Sufficient for large currency values
+        // Handle negative values
+        bool isNegative = value < 0;
+        if (isNegative)
+            value = Negate(value);
 
-        // Write the currency symbol manually (assumes USD)
-        buffer[0] = '$';
+        // Determine scaling based on whether decimal places are excluded
+        decimal scaledValue = excludePlaces ? Truncate(value) : Truncate(value * 100m);
+        long total = ToInt64(scaledValue);
 
-        // Separate the integer and fractional parts
-        var integerPart = (long)value;
-        var fractionalPart = (int)((value - integerPart) * 100); // Always two decimal places
-
-        // Format the integer part with separators (e.g., "1,234")
-        int position = FormatIntegerWithSeparators(buffer.Slice(1), integerPart);
-
-        // Include decimal places if needed
+        // If not excluding decimal places, extract cents
+        long cents = 0;
         if (!excludePlaces)
         {
-            buffer[position++] = '.';
-            buffer[position++] = (char)('0' + fractionalPart / 10); // First decimal digit
-            buffer[position++] = (char)('0' + fractionalPart % 10); // Second decimal digit
+            cents = total % 100;
+            total /= 100;
         }
 
-        // Return the result as a string
-        return new string(buffer[..position]);
-    }
+        long dollars = total;
 
-    private static int FormatIntegerWithSeparators(Span<char> buffer, long value)
-    {
-        // Format the integer part manually with separators
-        int position = buffer.Length;
-        var digitCount = 0;
+        // Estimate the maximum required length:
+        // 1 for currency symbol, up to 20 for dollars with separators,
+        // 1 for decimal separator (if included), 2 for cents,
+        // 1 for negative sign
+        Span<char> buffer = stackalloc char[32];
+        int pos = buffer.Length;
 
+        // Write cents if not excluded
+        if (!excludePlaces)
+        {
+            buffer[--pos] = (char)('0' + (cents % 10));
+            cents /= 10;
+            buffer[--pos] = (char)('0' + (cents % 10));
+            buffer[--pos] = _decimalSeparator;
+        }
+
+        // Write dollars with group separators
+        int digitCount = 0;
         do
         {
-            if (digitCount == 3)
-            {
-                buffer[--position] = ','; // Add a separator
-                digitCount = 0;
-            }
-
-            buffer[--position] = (char)('0' + value % 10);
-            value /= 10;
+            buffer[--pos] = (char)('0' + (dollars % 10));
+            dollars /= 10;
             digitCount++;
-        } while (value > 0);
+            if (dollars > 0 && digitCount % 3 == 0)
+            {
+                buffer[--pos] = _groupSeparator;
+            }
+        } while (dollars > 0);
 
-        // Shift the result to the beginning of the buffer
-        int start = buffer.Length - position;
-        buffer.Slice(position, start).CopyTo(buffer);
-        return start;
+        // Add currency symbol
+        buffer[--pos] = _currencySymbol;
+
+        // Add negative sign if necessary
+        if (isNegative)
+        {
+            buffer[--pos] = '-';
+        }
+
+        // Calculate the length of the resulting string
+        int length = buffer.Length - pos;
+
+        // Create the string from the buffer slice
+        return new string(buffer.Slice(pos, length));
     }
 
     [Pure]
@@ -156,7 +178,7 @@ public static class DecimalExtension
     [Pure]
     public static double ToDouble(this decimal value)
     {
-        return decimal.ToDouble(value);
+        return System.Decimal.ToDouble(value);
     }
 
     /// <summary>

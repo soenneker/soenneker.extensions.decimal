@@ -6,23 +6,23 @@ namespace Soenneker.Extensions.Decimal.Tests.Benchmarks;
 [MemoryDiagnoser]
 public class ToCurrencyDisplayBenchmarks
 {
-    private decimal value;
+    private decimal _value;
 
     [GlobalSetup]
     public void Setup()
     {
-        value = 1233.35343M;
+        _value = 1233.35343M;
     }
 
     [Benchmark(Baseline = true)]
     public string ToCurrencyBuiltIn()
     {
-        return value.ToString("C", CultureEnUsCache.CultureInfo);
+        return _value.ToString("C", CultureEnUsCache.CultureInfo);
     }
 
     [Benchmark]
     public string ToCurrency()
     {
-        return value.ToCurrencyDisplay();
+        return _value.ToCurrencyDisplay();
     }
 }
