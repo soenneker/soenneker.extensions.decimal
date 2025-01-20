@@ -12,7 +12,6 @@ public class BenchmarkRunner : BenchmarkTest
     {
     }
 
-    [Fact]
     public async ValueTask ToCurrencyDisplayBenchmarks()
     {
         Summary summary = BenchmarkDotNet.Running.BenchmarkRunner.Run<ToCurrencyDisplayBenchmarks>(DefaultConf);
