@@ -42,4 +42,21 @@ public class DecimalExtensionTests : UnitTest
         // Assert
         result.Should().Be("$1,234.56"); // No rounding should occur beyond two decimal places
     }
+
+    [Theory]
+    [InlineData(0.33, "33%")]
+    [InlineData(0.335, "33.5%")]
+    [InlineData(0.3333, "33.33%")]
+    [InlineData(0.3333555, "33.34%")]
+    [InlineData(0.5, "50%")]
+    [InlineData(0.99, "99%")]
+    [InlineData(1, "100%")]
+    public void ToPercentDisplay_CorrectsScaling(decimal input, string expected)
+    {
+        // Act
+        string result = input.ToPercentDisplay();
+
+        // Assert
+        result.Should().Be(expected);
+    }
 }
