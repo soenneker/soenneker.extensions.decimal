@@ -17,7 +17,7 @@ public class ToCurrencyDisplayBenchmarks
     [Benchmark(Baseline = true)]
     public string ToCurrencyBuiltIn()
     {
-        return _value.ToString("C", CultureEnUsCache.CultureInfo);
+        return _value.ToString("C", CultureEnUsCache.Instance);
     }
 
     [Benchmark]
