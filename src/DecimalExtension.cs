@@ -38,13 +38,16 @@ public static class DecimalExtension
         // Handle negative values
         bool isNegative = value < 0;
         if (isNegative)
-            value = Negate(value);
+            value = -value;
 
-        // Determine scaling based on whether decimal places are excluded
-        decimal scaledValue = excludePlaces ? Truncate(value) : Truncate(value * 100m);
-        long total = ToInt64(scaledValue);
+        // Multiply and round to nearest cent (or to whole dollar if excluding places)
+        decimal scaled = excludePlaces
+            ? decimal.Round(value, 0, MidpointRounding.ToEven)
+            : decimal.Round(value * 100m, 0, MidpointRounding.ToEven);
 
-        // If not excluding decimal places, extract cents
+        long total = (long)scaled;
+
+        // Peel off cents if needed
         long cents = 0;
         if (!excludePlaces)
         {
@@ -54,14 +57,11 @@ public static class DecimalExtension
 
         long dollars = total;
 
-        // Estimate the maximum required length:
-        // 1 for currency symbol, up to 20 for dollars with separators,
-        // 1 for decimal separator (if included), 2 for cents,
-        // 1 for negative sign
+        // Prepare a 32-char stack buffer (enough for symbol, digits, separators, sign)
         Span<char> buffer = stackalloc char[32];
         int pos = buffer.Length;
 
-        // Write cents if not excluded
+        // Write cents (“.00”)
         if (!excludePlaces)
         {
             buffer[--pos] = (char)('0' + (cents % 10));
@@ -70,7 +70,7 @@ public static class DecimalExtension
             buffer[--pos] = _decimalSeparator;
         }
 
-        // Write dollars with group separators
+        // Write dollars with grouping
         int digitCount = 0;
         do
         {
@@ -78,31 +78,22 @@ public static class DecimalExtension
             dollars /= 10;
             digitCount++;
             if (dollars > 0 && digitCount % 3 == 0)
-            {
                 buffer[--pos] = _groupSeparator;
-            }
         } while (dollars > 0);
 
-        // Add currency symbol
+        // Currency symbol and optional minus
         buffer[--pos] = _currencySymbol;
-
-        // Add negative sign if necessary
         if (isNegative)
-        {
             buffer[--pos] = '-';
-        }
 
-        // Calculate the length of the resulting string
-        int length = buffer.Length - pos;
-
-        // Create the string from the buffer slice
-        return new string(buffer.Slice(pos, length));
+        // Slice out the used portion and make a string
+        return new string(buffer.Slice(pos, buffer.Length - pos));
     }
 
     [Pure]
     public static decimal ToCurrency(this decimal value)
     {
-        return Math.Round(value, 2, MidpointRounding.AwayFromZero);
+        return Math.Round(value, 2, MidpointRounding.ToEven);
     }
 
     /// <summary> Two decimal places. Does not round. </summary>
@@ -114,7 +105,7 @@ public static class DecimalExtension
         if (value == 0m)
             return "0%";
 
-        decimal scaledValue = Math.Round(value * 100, 2, MidpointRounding.AwayFromZero);
+        decimal scaledValue = Math.Round(value * 100, 2, MidpointRounding.ToEven);
 
         // Convert to string without unnecessary trailing zeros
         return $"{scaledValue:0.##}%";
@@ -126,7 +117,7 @@ public static class DecimalExtension
     [Pure]
     public static double ToDouble(this decimal value)
     {
-        return System.Decimal.ToDouble(value);
+        return decimal.ToDouble(value);
     }
 
     /// <summary>
