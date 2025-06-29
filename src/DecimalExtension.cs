@@ -91,9 +91,9 @@ public static class DecimalExtension
     }
 
     [Pure]
-    public static decimal ToCurrency(this decimal value)
+    public static decimal ToCurrency(this decimal value, bool includePlaces = true)
     {
-        return Math.Round(value, 2, MidpointRounding.ToEven);
+        return Math.Round(value, includePlaces ? 2 : 0, MidpointRounding.ToEven);
     }
 
     /// <summary> Two decimal places. Does not round. </summary>
