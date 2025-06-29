@@ -45,7 +45,7 @@ public static class DecimalExtension
             ? decimal.Round(value, 0, MidpointRounding.ToEven)
             : decimal.Round(value * 100m, 0, MidpointRounding.ToEven);
 
-        long total = (long)scaled;
+        var total = (long)scaled;
 
         // Peel off cents if needed
         long cents = 0;
@@ -71,7 +71,7 @@ public static class DecimalExtension
         }
 
         // Write dollars with grouping
-        int digitCount = 0;
+        var digitCount = 0;
         do
         {
             buffer[--pos] = (char)('0' + (dollars % 10));

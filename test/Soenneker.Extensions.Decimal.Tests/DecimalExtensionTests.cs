@@ -4,7 +4,7 @@ using Xunit;
 
 namespace Soenneker.Extensions.Decimal.Tests;
 
-public class DecimalExtensionTests : UnitTest
+public sealed class DecimalExtensionTests : UnitTest
 {
     [Theory]
     [InlineData(0, false, "$0.00")]
@@ -24,7 +24,7 @@ public class DecimalExtensionTests : UnitTest
     public void ToCurrencyDisplay_ShouldReturnExpectedResults(decimal value, bool excludePlaces, string expected)
     {
         // Act
-        var result = value.ToCurrencyDisplay(excludePlaces);
+        string result = value.ToCurrencyDisplay(excludePlaces);
 
         // Assert
         result.Should().Be(expected);
@@ -34,10 +34,10 @@ public class DecimalExtensionTests : UnitTest
     public void ToCurrencyDisplay_ShouldHandleFractionalTruncatingProperly()
     {
         // Arrange
-        decimal value = 1234.5678m;
+        const decimal value = 1234.5678m;
 
         // Act
-        var result = value.ToCurrencyDisplay();
+        string result = value.ToCurrencyDisplay();
 
         // Assert
         result.Should().Be("$1,234.57");
