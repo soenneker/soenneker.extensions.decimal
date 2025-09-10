@@ -1,5 +1,4 @@
-﻿using System.Threading.Tasks;
-using BenchmarkDotNet.Reports;
+﻿using BenchmarkDotNet.Reports;
 using Soenneker.Benchmarking.Extensions.Summary;
 using Soenneker.Tests.Benchmark;
 using Xunit;
@@ -12,7 +11,7 @@ public class BenchmarkRunner : BenchmarkTest
     {
     }
 
-    public async ValueTask ToCurrencyDisplayBenchmarks()
+    public async System.Threading.Tasks.ValueTask ToCurrencyDisplayBenchmarks()
     {
         Summary summary = BenchmarkDotNet.Running.BenchmarkRunner.Run<ToCurrencyDisplayBenchmarks>(DefaultConf);
 
