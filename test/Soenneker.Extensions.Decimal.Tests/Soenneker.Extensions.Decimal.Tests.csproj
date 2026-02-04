@@ -12,7 +12,7 @@
     </PropertyGroup>
 
     <ItemGroup><PackageReference Include="Soenneker.Tests.Benchmark" Version="4.0.63" />
-        <PackageReference Include="Soenneker.Tests.Unit" Version="4.0.1019" /><PackageReference Include="xUnit.v3" Version="3.2.2" />
+        <PackageReference Include="Soenneker.Tests.Unit" Version="4.0.1020" /><PackageReference Include="xUnit.v3" Version="3.2.2" />
     </ItemGroup>
 
     <ItemGroup>
