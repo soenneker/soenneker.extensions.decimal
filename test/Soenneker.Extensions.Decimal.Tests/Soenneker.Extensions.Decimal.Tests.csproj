@@ -15,5 +15,11 @@
     <ItemGroup>
         <ProjectReference Include="..\..\src\Soenneker.Extensions.Decimal\Soenneker.Extensions.Decimal.csproj" />
     </ItemGroup>
+  <ItemGroup>
+    <Compile Remove="Benchmarks\**\*.cs" />
+    <Compile Remove="Benchmarking\**\*.cs" />
+  </ItemGroup>
 </Project>
+
+
 

@@ -1,7 +1,3 @@
-using BenchmarkDotNet.Reports;
-using Soenneker.Benchmarking.Extensions.Summary;
-using Soenneker.Tests.Benchmark;
-
 namespace Soenneker.Extensions.Decimal.Tests.Benchmarks;
 
 public class BenchmarkRunner : BenchmarkTest
@@ -14,6 +10,8 @@ public class BenchmarkRunner : BenchmarkTest
     {
         Summary summary = BenchmarkDotNet.Running.BenchmarkRunner.Run<ToCurrencyDisplayBenchmarks>(DefaultConf);
 
-        await summary.OutputSummaryToLog(OutputHelper, CancellationToken);
+        await summary.OutputSummaryToLog();
     }
 }
+
+
