@@ -1,6 +1,5 @@
 using AwesomeAssertions;
 using Soenneker.Tests.Unit;
-using Xunit;
 
 namespace Soenneker.Extensions.Decimal.Tests;
 
@@ -30,7 +29,7 @@ public sealed class DecimalExtensionTests : UnitTest
         result.Should().Be(expected);
     }
 
-    [Fact]
+    [Test]
     public void ToCurrencyDisplay_ShouldHandleFractionalTruncatingProperly()
     {
         // Arrange
