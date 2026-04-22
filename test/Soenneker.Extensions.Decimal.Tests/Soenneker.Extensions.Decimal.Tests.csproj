@@ -15,10 +15,5 @@
     <ItemGroup>
         <ProjectReference Include="..\..\src\Soenneker.Extensions.Decimal\Soenneker.Extensions.Decimal.csproj" />
     </ItemGroup>
-
-    <ItemGroup>
-        <Content Include="testconfig.json">
-            <CopyToOutputDirectory>PreserveNewest</CopyToOutputDirectory>
-        </Content>
-    </ItemGroup>
 </Project>
+
