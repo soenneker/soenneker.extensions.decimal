@@ -1,5 +1,6 @@
 ﻿using System;
 using System.Diagnostics.Contracts;
+using System.Globalization;
 using System.Runtime.CompilerServices;
 
 namespace Soenneker.Extensions.Decimal;
@@ -9,10 +10,6 @@ namespace Soenneker.Extensions.Decimal;
 /// </summary>
 public static class DecimalExtension
 {
-    private const char _currencySymbol = '$';
-    private const char _decimalSeparator = '.';
-    private const char _groupSeparator = ',';
-
     /// <summary>
     /// Converts a nullable decimal value to its currency string representation, optionally omitting decimal places.
     /// </summary>
@@ -35,68 +32,18 @@ public static class DecimalExtension
     /// <remarks>Negative values are formatted with a leading minus sign. The output uses the currency symbol,
     /// group separator, and decimal separator defined by the implementation. This method performs banker's rounding
     /// (MidpointRounding.ToEven) when rounding to whole units or cents.</remarks>
-    /// <param name="value">The decimal value to format as currency. Must not be decimal.MinValue and must not exceed long.MaxValue.</param>
+    /// <param name="value">The decimal value to format as currency.</param>
     /// <param name="excludePlaces">If <see langword="true"/>, omits the fractional (cents) part and rounds to the nearest whole currency unit;
     /// otherwise, includes two decimal places for cents.</param>
     /// <returns>A string representing the formatted currency value, prefixed with the currency symbol and including thousands
     /// separators. If <paramref name="excludePlaces"/> is <see langword="false"/>, the result includes two decimal
     /// places for cents; otherwise, it is rounded to the nearest whole unit.</returns>
-    /// <exception cref="OverflowException">Thrown if <paramref name="value"/> is decimal.MinValue or exceeds long.MaxValue.</exception>
     [Pure, MethodImpl(MethodImplOptions.AggressiveInlining)]
     public static string ToCurrencyDisplay(this decimal value, bool excludePlaces = false)
     {
-        // decimal.MinValue cannot be negated (no positive representable counterpart)
-        if (value == decimal.MinValue)
-            throw new OverflowException("Cannot format decimal.MinValue as currency.");
-
-        bool isNegative = value < 0m;
-        if (isNegative)
-            value = decimal.Negate(value); // safe now that MinValue is excluded
-
-        // Round to desired precision first (banker's rounding)
-        value = decimal.Round(value, excludePlaces ? 0 : 2, MidpointRounding.ToEven);
-
-        // This formatter only supports magnitudes that fit into Int64 dollars.
-        // (If you want, we can add a slow fallback path for huge values.)
-        if (value > long.MaxValue)
-            throw new OverflowException("Currency value too large to format.");
-
-        long dollars = (long)value;
-
-        int cents = 0;
-        if (!excludePlaces)
-        {
-            // After rounding, fractional part is stable. Multiply to get cents.
-            decimal fractional = value - dollars; // [0, 0.99]
-            cents = (int)(fractional * 100m);     // [0, 99]
-        }
-
-        Span<char> buffer = stackalloc char[32];
-        int pos = buffer.Length;
-
-        if (!excludePlaces)
-        {
-            buffer[--pos] = (char)('0' + (cents % 10));
-            buffer[--pos] = (char)('0' + (cents / 10));
-            buffer[--pos] = _decimalSeparator;
-        }
-
-        int digitCount = 0;
-        do
-        {
-            buffer[--pos] = (char)('0' + (dollars % 10));
-            dollars /= 10;
-            digitCount++;
-
-            if (dollars > 0 && (digitCount % 3) == 0)
-                buffer[--pos] = _groupSeparator;
-        } while (dollars > 0);
-
-        buffer[--pos] = _currencySymbol;
-        if (isNegative)
-            buffer[--pos] = '-';
-
-        return new string(buffer.Slice(pos, buffer.Length - pos));
+        decimal rounded = decimal.Round(value, excludePlaces ? 0 : 2, MidpointRounding.ToEven);
+        string format = excludePlaces ? "$#,0;-$#,0" : "$#,0.00;-$#,0.00";
+        return rounded.ToString(format, CultureInfo.InvariantCulture);
     }
 
     /// <summary>

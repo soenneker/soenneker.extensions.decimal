@@ -43,6 +43,13 @@ public sealed class DecimalExtensionTests : UnitTest
     }
 
     [Test]
+    public void ToCurrencyDisplay_supports_the_full_decimal_range()
+    {
+        decimal.MaxValue.ToCurrencyDisplay().Should().Be("$79,228,162,514,264,337,593,543,950,335.00");
+        decimal.MinValue.ToCurrencyDisplay().Should().Be("-$79,228,162,514,264,337,593,543,950,335.00");
+    }
+
+    [Test]
     [Arguments(0.33, "33%")]
     [Arguments(0.335, "33.5%")]
     [Arguments(0.3333, "33.33%")]
